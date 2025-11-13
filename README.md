@@ -19,7 +19,7 @@ It uses LangChain & Hugging Face llm model for natural language summarization, s
 
 ## 📊 Data Workflow Diagram
 
-![Data Workflow](Data Workflow fig.png)
+![Data Workflow](https://github.com/subhankar0002/QuickRead-AI/blob/main/Data%20Workflow%20fig.png)
 
 ---
 
