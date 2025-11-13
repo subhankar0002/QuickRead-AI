@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickRead AI - Extract Key Points Instantly</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #3b82f6;
+            --color-primary-dark: #1e40af;
+            --color-bg-light: #ffffff;
+            --color-bg-light-alt: #f8fafc;
+            --color-text-light: #1f2937;
+            --color-text-light-muted: #6b7280;
+            --color-border-light: #e5e7eb;
+            --color-bg-dark: #0f172a;
+            --color-bg-dark-alt: #1e293b;
+            --color-text-dark: #f1f5f9;
+            --color-text-dark-muted: #cbd5e1;
+            --color-border-dark: #334155;
+            --transition: all 0.3s ease;
+        }
+
+        html.dark-mode {
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        html.dark-mode body {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+
+        .navbar {
+            background-color: var(--color-bg-light);
+            border-bottom: 1px solid var(--color-border-light);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        html.dark-mode .navbar {
+            background-color: var(--color-bg-dark-alt);
+            border-bottom-color: var(--color-border-dark);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .navbar-brand svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--color-text-light);
+            transition: var(--transition);
+        }
+
+        html.dark-mode .dark-mode-toggle {
+            color: var(--color-text-dark);
+        }
+
+        .dark-mode-toggle:hover {
+            color: var(--color-primary);
+            transform: rotate(20deg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Skeleton Loader */
+        .skeleton {
+            background: linear-gradient(90deg,
+                var(--color-bg-light-alt) 25%,
+                var(--color-border-light) 50%,
+                var(--color-bg-light-alt) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            height: 14px;
+        }
+
+        html.dark-mode .skeleton {
+            background: linear-gradient(90deg,
+                var(--color-bg-dark-alt) 25%,
+                var(--color-border-dark) 50%,
+                var(--color-bg-dark-alt) 75%);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .skeleton-wrapper {
+            margin-top: 1rem;
+        }
+
+        .skeleton-line { width: 100%; }
+        .skeleton-line.short { width: 70%; }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--color-text-light-muted);
+            margin-bottom: 2rem;
+        }
+
+        html.dark-mode .hero p {
+            color: var(--color-text-dark-muted);
+        }
+
+        .upload-section {
+            background-color: var(--color-bg-light-alt);
+            border: 2px dashed var(--color-border-light);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 3rem;
+        }
+
+        html.dark-mode .upload-section {
+            background-color: var(--color-bg-dark-alt);
+            border-color: var(--color-border-dark);
+        }
+
+        .upload-section:hover {
+            border-color: var(--color-primary);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        html.dark-mode .upload-section:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-section p {
+            color: var(--color-text-light-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        html.dark-mode .upload-section p {
+            color: var(--color-text-dark-muted);
+        }
+
+        .file-input { display: none; }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--color-bg-light);
+            border-radius: 8px;
+            display: none;
+        }
+
+        html.dark-mode .file-info {
+            background-color: var(--color-bg-dark);
+        }
+
+        .file-info.show { display: block; }
+
+        .summary-section {
+            margin-bottom: 3rem;
+        }
+
+        .summary-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .summary-content {
+            background-color: var(--color-bg-light-alt);
+            border: 1px solid var(--color-border-light);
+            border-radius: 12px;
+            padding: 2rem;
+            display: none;
+            transition: var(--transition);
+        }
+
+        html.dark-mode .summary-content {
+            background-color: var(--color-bg-dark-alt);
+            border-color: var(--color-border-dark);
+        }
+
+        .summary-content.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .summary-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+
+        .summary-text {
+            line-height: 1.8;
+            color: var(--color-text-light);
+        }
+
+        html.dark-mode .summary-text {
+            color: var(--color-text-dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--color-text-light-muted);
+        }
+
+        html.dark-mode .empty-state {
+            color: var(--color-text-dark-muted);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+            border: 2px solid var(--color-border-light);
+        }
+
+        html.dark-mode .btn-secondary {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+            border-color: var(--color-border-dark);
+        }
+
+        .footer {
+            background-color: var(--color-bg-light-alt);
+            border-top: 1px solid var(--color-border-light);
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        html.dark-mode .footer {
+            background-color: var(--color-bg-dark-alt);
+            border-top-color: var(--color-border-dark);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+
+        .footer-section p {
+            font-size: 0.95rem;
+            color: var(--color-text-light-muted);
+            line-height: 1.8;
+        }
+
+        html.dark-mode .footer-section p {
+            color: var(--color-text-dark-muted);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--color-border-light);
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--color-text-light-muted);
+        }
+
+        html.dark-mode .footer-bottom {
+            border-top-color: var(--color-border-dark);
+            color: var(--color-text-dark-muted);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16v16H4z"></path>
+                    <path d="M8 8h3v3H8zm5 0h3v3h-3zm0 5h3v3h-3z"></path>
+                </svg>
+                <span>QuickRead AI</span>
+            </div>
+            <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle dark mode">☀️</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <h1>QuickRead AI</h1>
+            <p>Upload your PDF or DOCX file and get instant, intelligent summaries powered by AI.</p>
+        </section>
+
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-icon">📁</div>
+            <h2>Drop your PDF here</h2>
+            <p>or click to browse your computer</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx" />
+            <div class="file-info" id="fileInfo">
+                <p><span id="fileName"></span></p>
+            </div>
+        </section>
+
+        <section class="summary-section">
+            <div class="summary-header">
+                <h2>Summary</h2>
+            </div>
+            <div class="summary-content" id="summaryContent">
+                <div class="empty-state" id="emptyState">
+                    <p>Upload a PDF to see the summary here</p>
+                </div>
+                <div class="skeleton-wrapper" id="skeletonLoader" style="display:none;">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line short"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line short"></div>
+                </div>
+            </div>
+        </section>
+
+        <div id="buttonGroup" class="button-group" style="display: none;">
+            <button class="btn btn-primary" onclick="downloadSummary()">Download Summary</button>
+            <button class="btn btn-secondary" onclick="copyToClipboard()">Copy Summary</button>
+            <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About QuickRead AI</h4>
+                <p>QuickRead AI is an intelligent AI-powered tool that helps you instantly extract and understand key insights from lengthy PDF documents. With advanced natural language processing, it transforms complex reports, research papers, and articles into clear, concise summaries — saving you time and boosting productivity.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Creator</h4>
+                <p><strong>Subhankar Saha</strong><br>
+                    Email: <a href="mailto:sahav0117@gmail.com">sahav0117@gmail.com</a><br>
+                    <a href="https://github.com/subhankar0002">GitHub</a> • <a href="https://www.linkedin.com/in/subhankar0002/">LinkedIn</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 QuickRead AI. All rights reserved. | Made with ❤️</p>
+        </div>
+    </footer>
+
+    <script>
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const html = document.documentElement;
+
+    if (localStorage.getItem('darkMode') === 'true') {
+        html.classList.add('dark-mode');
+        darkModeToggle.textContent = '🌙';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+        html.classList.toggle('dark-mode');
+        const isDark = html.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        darkModeToggle.textContent = isDark ? '🌙' : '☀️';
+    });
+
+    // File Upload Elements
+    const fileInput = document.getElementById('fileInput');
+    const uploadSection = document.getElementById('uploadSection');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const summaryContent = document.getElementById('summaryContent');
+    const emptyState = document.getElementById('emptyState');
+    const skeletonLoader = document.getElementById('skeletonLoader');
+    const buttonGroup = document.getElementById('buttonGroup');
+
+    // Drag & Drop Events
+    uploadSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadSection.style.borderColor = 'var(--color-primary)';
+    });
+
+    uploadSection.addEventListener('dragleave', () => {
+        uploadSection.style.borderColor = 'var(--color-border-light)';
+    });
+
+    uploadSection.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadSection.style.borderColor = 'var(--color-border-light)';
+        const files = e.dataTransfer.files;
+        if (files.length > 0) handleFile(files[0]);
+    });
+
+    // File Input Change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    });
+
+    // Handle File Upload
+    function handleFile(file) {
+        if (!file.name.match(/\.(pdf|docx)$/i)) {
+            alert('Please upload a PDF or DOCX file');
+            return;
+        }
+
+        fileName.textContent = file.name;
+        fileInfo.classList.add('show');
+
+        uploadToBackend(file);
+    }
+
+    // Send File to Flask Backend
+    async function uploadToBackend(file) {
+        emptyState.style.display = 'none';
+        summaryContent.classList.add('show');
+        skeletonLoader.style.display = 'block';
+        buttonGroup.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            skeletonLoader.style.display = 'none';
+
+            if (data.summary) {
+                const formattedSummary = `
+                    <h3>Summary</h3>
+                    <div class="summary-text">${data.summary.replace(/\n/g, '<br>')}</div>
+                `;
+                summaryContent.innerHTML = formattedSummary;
+                summaryContent.classList.add('show');
+                buttonGroup.style.display = 'flex';
+            } else {
+                summaryContent.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                summaryContent.classList.add('show');
+            }
+        } catch (error) {
+            skeletonLoader.style.display = 'none';
+            summaryContent.innerHTML = `<p style="color:red;">Failed to summarize. Please try again later.</p>`;
+            summaryContent.classList.add('show');
+        }
+    }
+
+    // Download Summary
+    function downloadSummary() {
+        const summaryText = document.querySelector('.summary-text')?.innerText;
+        if (!summaryText) return;
+
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(summaryText));
+        element.setAttribute('download', 'summary.txt');
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    // Copy to Clipboard
+    function copyToClipboard() {
+        const summaryText = document.querySelector('.summary-text')?.innerText;
+        if (!summaryText) return;
+
+        navigator.clipboard.writeText(summaryText).then(() => {
+            alert('Summary copied to clipboard!');
+        });
+    }
+
+    // Clear All Data
+    function clearAll() {
+        fileInput.value = '';
+        fileInfo.classList.remove('show');
+        summaryContent.innerHTML = '';
+        summaryContent.classList.remove('show');
+        emptyState.style.display = 'block';
+        buttonGroup.style.display = 'none';
+    }
+</script>
+
+
+
+</body>
+
+</html>
