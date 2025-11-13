@@ -17,8 +17,11 @@ It uses LangChain & Hugging Face llm model for natural language summarization, s
 
 ---
 
-## Project Architecture
-    (Data Workflow fig.png)
+## 📊 Data Workflow Diagram
+
+![Data Workflow](Data Workflow fig.png)
+
+---
 
 
 ## About the Model
